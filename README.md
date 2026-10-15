@@ -25,7 +25,7 @@ uv sync
 uv run database
 ```
 
-### Команды
+## Команды
 
 | Команда | Описание |
 |---|---|
@@ -53,8 +53,6 @@ uv run database
 ```
 
 Структура таблиц сохраняется в файле `db_meta.json`.
-
-[![Демонстрация](https://asciinema.org/a/zXI4XMRIWgWFK1QK.svg)](https://asciinema.org/a/zXI4XMRIWgWFK1QK)
 
 ## CRUD-операции
 
@@ -125,8 +123,6 @@ info users
 
 Строковые значения необходимо заключать в кавычки.
 
-[![Демонстрация](https://asciinema.org/a/ZUmFmUbD4NvSxstF.svg)](https://asciinema.org/a/ZUmFmUbD4NvSxstF)
-
 ## Декораторы и замыкания
 
 В проекте реализованы декораторы для обработки ошибок,
@@ -173,4 +169,10 @@ info users
 Ключ кэша включает содержимое таблицы и условие выборки,
 чтобы после изменения записей не возвращать устаревшие результаты.
 
-[![Демонстрация](https://asciinema.org/a/p5OOFt5OvoGxtOAN.svg)](https://asciinema.org/a/p5OOFt5OvoGxtOAN)
+<h1 align="center">Демонстрация установки и работы приложения</h1>
+
+<p align="center">
+  <a href="https://asciinema.org/a/NfqeyYgFDOwfiSFM">
+    <img src="https://asciinema.org/a/NfqeyYgFDOwfiSFM.svg" width="700" alt="Демонстрация работы базы данных">
+  </a>
+</p>
