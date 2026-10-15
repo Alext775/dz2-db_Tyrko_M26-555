@@ -23,21 +23,37 @@ from .utils import (
 
 
 def print_help():
+    """Вывести список доступных команд"""
     print("\n***Операции с данными***")
-    print("Функции:")
-    print("<command> create_table <таблица> <столбец:тип> ...")
-    print("<command> list_tables")
-    print("<command> drop_table <таблица>")
-    print("<command> insert into <таблица> values (<значение>, ...)")
-    print("<command> select from <таблица> [where <поле> = <значение>]")
-    print("<command> update <таблица> set <поле> = <значение> where ...")
-    print("<command> delete from <таблица> where <поле> = <значение>")
-    print("<command> info <таблица>")
-    print("<command> exit")
-    print("<command> help")
+    print("\nФункции:")
+    print("<command> create_table <имя_таблицы> <столбец1:тип> ... - создать таблицу")
+    print("<command> list_tables - показать список всех таблиц")
+    print("<command> drop_table <имя_таблицы> - удалить таблицу")
+    print(
+        "<command> insert into <имя_таблицы> "
+        "values (<значение1>, <значение2>, ...) - создать запись"
+    )
+    print(
+        "<command> select from <имя_таблицы> "
+        "where <столбец> = <значение> - прочитать записи по условию"
+    )
+    print("<command> select from <имя_таблицы> - прочитать все записи")
+    print(
+        "<command> update <имя_таблицы> set <столбец1> = <новое_значение1> "
+        "where <столбец_условия> = <значение_условия> - обновить запись"
+    )
+    print(
+        "<command> delete from <имя_таблицы> "
+        "where <столбец> = <значение> - удалить запись"
+    )
+    print("<command> info <имя_таблицы> - вывести информацию о таблице")
+    print("<command> exit - выход из программы")
+    print("<command> help - справочная информация")
+    print()
 
 
 def get_schema(metadata, table_name):
+    """Получить структуру указанной таблицы"""
     if table_name not in metadata:
         raise KeyError(f'Таблица "{table_name}" не существует.')
 
@@ -45,6 +61,7 @@ def get_schema(metadata, table_name):
 
 
 def prepare_clause(metadata, table_name, clause, allow_id=True):
+    """Проверить типы и подготовить условие запроса"""
     schema = get_schema(metadata, table_name)
     result = {}
 
@@ -61,6 +78,7 @@ def prepare_clause(metadata, table_name, clause, allow_id=True):
 
 
 def print_rows(metadata, table_name, rows):
+    """Вывести записи в виде таблицы PrettyTable"""
     table = PrettyTable()
     table.field_names = list(get_schema(metadata, table_name))
 
@@ -72,6 +90,7 @@ def print_rows(metadata, table_name, rows):
 
 @handle_db_errors
 def execute_command(command):
+    """Разобрать и выполнить команду пользователя"""
     metadata = load_metadata(META_FILE)
     args = tokenize(command)
 
@@ -84,11 +103,13 @@ def execute_command(command):
     if action == "help":
         if params:
             raise ValueError("лишние аргументы")
+
         print_help()
 
     elif action == "exit":
         if params:
             raise ValueError("лишние аргументы")
+
         return True
 
     elif action == "create_table":
@@ -105,6 +126,7 @@ def execute_command(command):
             columns = ", ".join(
                 f"{name}:{kind}" for name, kind in result[table_name].items()
             )
+
             print(f'Таблица "{table_name}" успешно создана со столбцами: {columns}')
 
     elif action == "list_tables":
@@ -129,6 +151,7 @@ def execute_command(command):
         if result is not None:
             save_metadata(META_FILE, result)
             remove_table_data(table_name)
+
             print(f'Таблица "{table_name}" успешно удалена')
 
     elif action == "insert":
@@ -141,6 +164,7 @@ def execute_command(command):
 
         if data is not None:
             save_table_data(table_name, data)
+
             print(
                 f"Запись с ID={data[-1][ID_COLUMN]} успешно "
                 f'добавлена в таблицу "{table_name}".'
@@ -155,8 +179,14 @@ def execute_command(command):
 
         if len(args) == 3:
             where_clause = None
+
         elif len(args) == 7 and args[3] == "where":
-            where_clause = prepare_clause(metadata, table_name, parse_clause(args[4:]))
+            where_clause = prepare_clause(
+                metadata,
+                table_name,
+                parse_clause(args[4:]),
+            )
+
         else:
             raise ValueError("неверный синтаксис select")
 
@@ -171,13 +201,19 @@ def execute_command(command):
             raise ValueError("update <таблица> set <поле> = ... where ...")
 
         table_name = args[1]
+
         set_clause = prepare_clause(
             metadata,
             table_name,
             parse_clause(args[3:6]),
             allow_id=False,
         )
-        where_clause = prepare_clause(metadata, table_name, parse_clause(args[7:10]))
+
+        where_clause = prepare_clause(
+            metadata,
+            table_name,
+            parse_clause(args[7:10]),
+        )
 
         data = load_table_data(table_name)
         matched_rows = select(data, where_clause)
@@ -201,7 +237,12 @@ def execute_command(command):
             raise ValueError("delete from <таблица> where <поле> = ...")
 
         table_name = args[2]
-        where_clause = prepare_clause(metadata, table_name, parse_clause(args[4:]))
+
+        where_clause = prepare_clause(
+            metadata,
+            table_name,
+            parse_clause(args[4:]),
+        )
 
         data = load_table_data(table_name)
         matched_rows = select(data, where_clause)
@@ -240,7 +281,7 @@ def execute_command(command):
 
 
 def run():
-    print("\nПервая попытка запустить проект!")
+    """Запустить основной цикл базы данных"""
     print_help()
 
     while True:
