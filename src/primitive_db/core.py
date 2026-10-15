@@ -14,6 +14,7 @@ _select_cache = create_cacher()
 
 @handle_db_errors
 def create_table(metadata, table_name, columns):
+    """Создать таблицу с указанными столбцами"""
     if not table_name.isidentifier():
         raise ValueError(table_name)
 
@@ -60,6 +61,7 @@ def create_table(metadata, table_name, columns):
 @handle_db_errors
 @confirm_action("удаление таблицы")
 def drop_table(metadata, table_name):
+    """Удалить таблицу из метаданных"""
     if table_name not in metadata:
         raise KeyError(f'Таблица "{table_name}" не существует.')
 
@@ -68,6 +70,7 @@ def drop_table(metadata, table_name):
 
 
 def validate_value(value, column_type):
+    """Проверить соответствие значения типу столбца"""
     expected_types = {"int": int, "str": str, "bool": bool}
 
     if type(value) is not expected_types[column_type]:
@@ -79,6 +82,7 @@ def validate_value(value, column_type):
 @handle_db_errors
 @log_time
 def insert(metadata, table_name, values):
+    """Добавить запись с автоматически созданным ID"""
     if table_name not in metadata:
         raise KeyError(f'Таблица "{table_name}" не существует.')
 
@@ -94,7 +98,15 @@ def insert(metadata, table_name, values):
     }
 
     data = load_table_data(table_name)
-    next_id = max((record[ID_COLUMN] for record in data), default=0) + 1
+
+    next_id = (
+        max(
+            (record[ID_COLUMN] for record in data),
+            default=0,
+        )
+        + 1
+    )
+
     data.append({ID_COLUMN: next_id, **row})
     return data
 
@@ -102,6 +114,7 @@ def insert(metadata, table_name, values):
 @handle_db_errors
 @log_time
 def select(table_data, where_clause=None):
+    """Получить записи по условию с использованием кэша"""
     key = json.dumps(
         {"data": table_data, "where": where_clause},
         ensure_ascii=False,
@@ -109,6 +122,7 @@ def select(table_data, where_clause=None):
     )
 
     def find_rows():
+        """Найти записи, соответствующие условию"""
         return [
             row.copy()
             for row in table_data
@@ -122,6 +136,7 @@ def select(table_data, where_clause=None):
 
 @handle_db_errors
 def update(table_data, set_clause, where_clause):
+    """Обновить записи, соответствующие условию"""
     if not where_clause:
         raise ValueError("не указано условие where")
 
@@ -138,6 +153,7 @@ def update(table_data, set_clause, where_clause):
 @handle_db_errors
 @confirm_action("удаление записи")
 def delete(table_data, where_clause):
+    """Удалить записи, соответствующие условию"""
     if not where_clause:
         raise ValueError("не указано условие where")
 
